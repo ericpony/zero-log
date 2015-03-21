@@ -20,28 +20,28 @@ Thanks to Scala's <tt>@elidable</tt>, when using compile-time configuration, the
 ## <a name="Usage"></a>Usage[](#Usage)
 
 You only need call <tt>ZeroLoggerFactory.newLogger(this)</tt> to get the logger, and call <tt>logger.info()</tt> to log. No more configurations for simple use. 
+```Scala
+package com.yourDomain.yourProject
+object Sample {
+  implicit val (logger, formatter, appender) = ZeroLoggerFactory.newLogger(this)
 
-    package com.yourDomain.yourProject
-    object Sample {
-      implicit val (logger, formatter, appender) = ZeroLoggerFactory.newLogger(this)
-    
-      def main(args: Array[String]) {
-        logger.info("Logging in a Singleton.")
-        logger.fine("Hello,")
-        logger.warning("World!")
-        logger.finest(fast"Faster string formatting: args.length is ${args.length}")
-        new Sample
-      }
-    }
-    
-    class Sample {
-      import Sample._
-    
-      logger.info("Logging in a class instance.")
-      logger.finer("Hello,")
-      logger.severe("World!", new Exception("With some Exception"))
-    }
+  def main(args: Array[String]) {
+    logger.info("Logging in a Singleton.")
+    logger.fine("Hello,")
+    logger.warning("World!")
+    logger.finest(fast"Faster string formatting: args.length is ${args.length}")
+    new Sample
+  }
+}
 
+class Sample {
+  import Sample._
+
+  logger.info("Logging in a class instance.")
+  logger.finer("Hello,")
+  logger.severe("World!", new Exception("With some Exception"))
+}
+```
 Note: By default, only logging level <tt>info</tt>, <tt>warning</tt> and <tt>severe</tt> are enabled, and the other levels are disabled. 
 
 ## <a name="Configure_logging_level,_formatting,_or_target"></a>Configure logging level, formatting, or target[](#Configure_logging_level,_formatting,_or_target)
@@ -49,29 +49,29 @@ Note: By default, only logging level <tt>info</tt>, <tt>warning</tt> and <tt>sev
 Unlike <tt>log4j</tt>, <tt>logback</tt>, <tt>java.util.logging</tt>, the <tt>zero-log</tt> does not load any XML or Properties file as configuration. Instead, <tt>zero-log</tt> use <tt>ZeroLoggerFactory</tt> to configure logging level, logging formatting, or logging target. If you need custom configuration, just put your own <tt>ZeroLoggerFactory</tt> on scalac's source path. 
 
 For example, you may create a file at <tt>src/main/scala/zero-log.config.scala</tt> to change logging level for <tt>com.yourDomain.yourProject.Sample</tt>: 
+```Scala
+import com.dongxiguo.zeroLog.Filter
+import com.dongxiguo.zeroLog.formatters.SimpleFormatter
+import com.dongxiguo.zeroLog.appenders.ConsoleAppender
 
-    import com.dongxiguo.zeroLog.Filter
-    import com.dongxiguo.zeroLog.formatters.SimpleFormatter
-    import com.dongxiguo.zeroLog.appenders.ConsoleAppender
-    
-    // Set global default logging level to Warning, and send logs to ConsoleAppender
-    object ZeroLoggerFactory {
-      final def newLogger(singleton: Singleton) =
-        (Filter.Warning, SimpleFormatter, ConsoleAppender)
-    }
-    
-    package com.yourDomain.yourProject {
-      object ZeroLoggerFactory {
-        // Set package com.yourDomain.yourProject's default logging level to Info
-        final def newLogger(singleton: Singleton) =
-          (Filter.Info, SimpleFormatter, ConsoleAppender)
-    
-        // Set Sample's logging level to Finest
-        final def newLogger(singleton: Sample.type) =
-          (Filter.Finest, SimpleFormatter, ConsoleAppender)
-      }
-    }
+// Set global default logging level to Warning, and send logs to ConsoleAppender
+object ZeroLoggerFactory {
+  final def newLogger(singleton: Singleton) =
+    (Filter.Warning, SimpleFormatter, ConsoleAppender)
+}
 
+package com.yourDomain.yourProject {
+  object ZeroLoggerFactory {
+    // Set package com.yourDomain.yourProject's default logging level to Info
+    final def newLogger(singleton: Singleton) =
+      (Filter.Info, SimpleFormatter, ConsoleAppender)
+
+    // Set Sample's logging level to Finest
+    final def newLogger(singleton: Sample.type) =
+      (Filter.Finest, SimpleFormatter, ConsoleAppender)
+  }
+}
+```
 Look at logger's initializing code in <tt>Sample.scala</tt>: 
 
     implicit val (logger, formatter, appender) = ZeroLoggerFactory.newLogger(this)
